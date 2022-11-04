@@ -2,5 +2,5 @@
 add $t1, $t2, $t3
 
 # addi still needs work to display 16 bit length representations of immediate
-addi $sp, $sp, 12
+addi $sp, $sp, -22
 sub $t1, $t2, $t3

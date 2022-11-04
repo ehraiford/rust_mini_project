@@ -20,7 +20,7 @@ fn parse_instruction(line: &str) -> String{
         return "BLANK LINE".to_string();
     }
 
-    let mut instruction_binary: String = String::from("");
+    let mut instruction_binary: String;
 
     match instruction_vec.as_slice()[0]{
 
@@ -132,10 +132,32 @@ fn read_register(listed_register: &str) -> String{
 }
 
 //takes string representation of an int and returns string representation of the binary equivalent.
-//need to update it to handle ints bigger than 16 bits, extend ints represented by fewer than 16
-//and properly display 16 bit length 2's complement negatives
+//need to update it to properly display 16 bit length 2's complement negatives
 fn translate_to_binary(given_text: &str) -> String{
+
     let decimal: i32 = given_text.parse().unwrap();
-    return  format!("{:b}", decimal).to_string();
-;
+
+    let mut binary_representation = format!("{:b}", decimal);
+
+    //denotes if the immediate is too big for MIPS
+    if decimal > 32767 || decimal < -32768 {
+        println!("Immediate value is too big. Must be within 16-bits: -32768 to 32767.");
+    }
+
+    //sign extends to 16 bits for positive ints
+    if decimal >= 0 {
+        let extend_binary = "0".to_string();
+        while binary_representation.len() < 16 {
+            binary_representation = extend_binary.to_string() + &*binary_representation.to_string();
+        }
+    //trims negative ints down to 16 bits
+    }else if decimal < 0{
+        while binary_representation.len() > 16 {
+            binary_representation.remove(0);
+        }
+    }
+
+
+    return  binary_representation.to_string();
+
 }

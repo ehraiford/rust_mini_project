@@ -5,11 +5,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let file_string: String = fs:: read_to_string(path).expect("Error in reading the file");
 
-    for line in file_string.lines(){
-        println!("{}", parse_instruction(line));
+    let mut instruction_list: Vec<u32> = Vec::new();
 
+    for line in file_string.lines(){
+        let read_instruction = parse_instruction(line);
+        if !read_instruction.is_empty() {
+            let instruction_u32 = convert_instruction_to_integer(read_instruction);
+            instruction_list.push(instruction_u32);
+        }
+    }
+
+    for entry in instruction_list{
+        println!("Instruction: {}", entry);
     }
     Ok(())
+}
+
+fn convert_instruction_to_integer(instruction_string: String) -> u32 {
+    let mut instruction_integer: u32 = 0;
+
+    //converts instruction from string representation of binary to the unsigned 32 bit integer representation of it.
+    for (i, char) in instruction_string.chars().rev().enumerate(){
+        let bit = char  as u32 - '0' as u32;
+        let exponential_multiplier = 2_u32.pow(i as u32);
+        instruction_integer += bit * exponential_multiplier ;
+
+    }
+
+    return instruction_integer;
 }
 
 fn parse_instruction(line: &str) -> String{
@@ -17,7 +40,8 @@ fn parse_instruction(line: &str) -> String{
     let instruction_vec: Vec<&str> = line.split_whitespace().collect::<Vec<&str>>();
 
     if instruction_vec.is_empty() {
-        return "BLANK LINE".to_string();
+        println!("Blank Line");
+        return "".to_string();
     }
 
     let mut instruction_binary: String;
@@ -34,10 +58,10 @@ fn parse_instruction(line: &str) -> String{
             instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[3]));
 
             //shamt not used
-            instruction_binary.push_str(" 00000");
+            instruction_binary.push_str("00000");
 
             //32 is the add function
-            instruction_binary.push_str(" 100000");
+            instruction_binary.push_str("100000");
 
 
         },
@@ -51,10 +75,10 @@ fn parse_instruction(line: &str) -> String{
             instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[3]));
 
             //shamt not used
-            instruction_binary.push_str(" 00000");
+            instruction_binary.push_str("00000");
 
             //34 is the sub function
-            instruction_binary.push_str(" 100010");
+            instruction_binary.push_str("100010");
         },
         "addi"=> {
             //000000 is arithmetic opcode
@@ -66,19 +90,24 @@ fn parse_instruction(line: &str) -> String{
 
             //read the 16 bit decimal value and translate it to binary
             let immediate = translate_to_binary(instruction_vec.as_slice()[3]);
-            instruction_binary.push_str(&*(" ".to_string() + &*immediate));
+            instruction_binary.push_str(&*immediate);
         },
         //currently only recognizes comments that start at the beginning of the line.
         //cannot recognize comments that do not have a space after # (eg #comment
-        "#"=>instruction_binary = String::from("COMMENT"),
-        _=>instruction_binary = String::from("Instruction Not Recognized"),
+        "#"=> {
+            instruction_binary = "".to_string();
+            println!("Recognized Comment.");
+        },
+        _=> {
+            instruction_binary = "".to_string();
+            println!("Instruction not recognized.");
+        },
     };
-
+    
     return instruction_binary.to_string();
 }
 
 fn read_register(listed_register: &str) -> String{
-
 
     let cleaned_register : &str = &*listed_register.replace(",", "");
 
@@ -127,37 +156,22 @@ fn read_register(listed_register: &str) -> String{
         _=>println!("Destination Register not recognized."),
     };
 
-    return " ".to_string() + &*register_string.to_string();
+    return register_string.to_string();
 
 }
 
 //takes string representation of an int and returns string representation of the binary equivalent.
-//need to update it to properly display 16 bit length 2's complement negatives
+// prints a message if there is an immediate value that is too big for MIPS to handle
 fn translate_to_binary(given_text: &str) -> String{
 
-    let decimal: i32 = given_text.parse().unwrap();
-
-    let mut binary_representation = format!("{:b}", decimal);
+    let decimal128: i128 = given_text.parse().unwrap();
 
     //denotes if the immediate is too big for MIPS
-    if decimal > 32767 || decimal < -32768 {
-        println!("Immediate value is too big. Must be within 16-bits: -32768 to 32767.");
+    if decimal128 > 32767 || decimal128 < -32768 {
+        println!("Immediate value is too big. Must be within 16 bits: -32768 to 32767. Immediates larger than 16 bits will be cut to 16 bits.");
     }
 
-    //sign extends to 16 bits for positive ints
-    if decimal >= 0 {
-        let extend_binary = "0".to_string();
-        while binary_representation.len() < 16 {
-            binary_representation = extend_binary.to_string() + &*binary_representation.to_string();
-        }
-    //trims negative ints down to 16 bits
-    }else if decimal < 0{
-        while binary_representation.len() > 16 {
-            binary_representation.remove(0);
-        }
-    }
-
-
+    let decimal16: i16 = decimal128 as i16;
+    let binary_representation = format!("{:b}", decimal16);
     return  binary_representation.to_string();
-
 }

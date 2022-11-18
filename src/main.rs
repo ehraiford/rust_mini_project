@@ -80,12 +80,66 @@ fn parse_instruction(line: &str) -> String{
             //34 is the sub function
             instruction_binary.push_str("100010");
         },
+        "mul"=>{
+            instruction_binary = String::from("011100");
+
+            //read three registers
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[1]));
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[2]));
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[3]));
+
+            //shamt not used
+            instruction_binary.push_str("00000");
+
+            //2 is the mul function
+            instruction_binary.push_str("000010");
+
+        }
+        "div"=>{
+            instruction_binary = String::from("000000");
+
+            //read 2 registers
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[1]));
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[2]));
+
+            //0 Value
+            instruction_binary.push_str("0000000000");
+
+            //Divide function
+            instruction_binary.push_str("011010");
+
+        }
         "addi"=> {
             //000000 is arithmetic opcode
             instruction_binary = String::from("000000");
 
             //read 2 registers
             instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[1]));
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[2]));
+
+            //read the 16 bit decimal value and translate it to binary
+            let immediate = translate_to_binary(instruction_vec.as_slice()[3]);
+            instruction_binary.push_str(&*immediate);
+        },
+        "ori"=> {
+
+            instruction_binary = String::from("001101");
+
+            //read 2 registers
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[1]));
+            instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[2]));
+
+            //read the 16 bit decimal value and translate it to binary
+            let immediate = translate_to_binary(instruction_vec.as_slice()[3]);
+            instruction_binary.push_str(&*immediate);
+        },
+        "lui"|"aui" => {
+            //001111 is LUI opcode
+            instruction_binary = String::from("001111");
+
+            instruction_binary.push_str("00000");
+
+            //read 1 register
             instruction_binary.push_str(&*read_register(instruction_vec.as_slice()[2]));
 
             //read the 16 bit decimal value and translate it to binary

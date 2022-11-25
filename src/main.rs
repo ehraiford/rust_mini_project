@@ -1,8 +1,11 @@
 use std::fs;
+use std::env;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path: &str = "C:/Users/Evan Raiford/IdeaProjects/rust_mini_project/src/parser_in.txt";
-
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let path = &args[1];
+    // println!("Hello");
+    // println!("{}", path);
     let file_string: String = fs:: read_to_string(path).expect("Error in reading the file");
 
     let mut instruction_list: Vec<u32> = Vec::new();
@@ -18,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for entry in instruction_list{
         println!("Instruction: {}", entry);
     }
-    Ok(())
+
 }
 
 fn convert_instruction_to_integer(instruction_string: String) -> u32 {
